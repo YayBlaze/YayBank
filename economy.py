@@ -1,4 +1,4 @@
-import functions, discord
+import functions, discord, json
 
 class BankAccount:
     """Bank account class to manage user balance and cash"""
@@ -12,6 +12,14 @@ class BankAccount:
         self.cash = 0
         self.user = user
         self.balance = 0
+        
+    def toJson(self):
+        json = {'cash': self.cash, 'balance': self.balance}
+        return json
+    
+    def loadJson(self, json:dict):
+        self.cash = json['cash']
+        self.balance = json['balance']
         
     def addMoney(self, amount):
         self.cash += amount
@@ -35,6 +43,7 @@ class Economy:
     """Economy class to manage user accounts and transactions"""
     
     accounts: {discord.Member, BankAccount} = {}
+    
     
     def __init__(self):
         pass

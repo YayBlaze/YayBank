@@ -14,3 +14,15 @@ def getWorkMsg(amount):
         templates = json.load(f)
     template = random.choice(templates)
     return template.replace("${amount}", f"${amount}")
+
+def getCrimeWin(amount):
+    with open("crime_win.json") as f:
+        templates = json.load(f)
+    template = random.choice(templates)
+    return template.replace("${amount}", f"${amount}")
+
+def getCrimeLose(amount):
+    with open("crime_fail.json") as f:
+        templates = json.load(f)
+    template = random.choice(templates)
+    return template.replace("${amount}", f"${amount}")
