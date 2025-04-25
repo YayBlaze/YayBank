@@ -6,7 +6,7 @@ class BankAccount:
     cash = None
     total = None
     user: discord.Member = None
-    cooldowns: {str, int} = {}
+    cooldowns: {str, int} = {"work": 0, "crime": 0, "bj": 0}
     
     def __init__(self, user: discord.Member):
         self.cash = 0
