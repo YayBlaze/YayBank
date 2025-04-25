@@ -1,4 +1,4 @@
-import discord, os, dotenv, time, random
+import discord, os, dotenv, time, random, pickle
 from discord.ext import commands
 from economy import *
 from functions import *
@@ -14,7 +14,13 @@ intents.members = True
 bot = commands.Bot(command_prefix=".", intents=intents)
 ec = Economy()
 
+# def update():
+#     file = open("save.json")
+#     pickle.dump(ec, file)
+#     file.close()
+
 async def sendEmbed(ctx, message:str, type:int = 0,):
+    # update()
     if type < 0: color = discord.Color.red()
     elif type > 0: color = discord.Color.green()
     else: color = discord.Color.blurple()
@@ -26,7 +32,11 @@ async def sendEmbed(ctx, message:str, type:int = 0,):
 
 @bot.event
 async def on_ready():
+    global ec
     await bot.change_presence(activity=discord.Activity(name="with your money", type=0))
+    # file = open("save.json", "r")
+    # ec = pickle.load(file)
+    # file.close()
     print(f'{bot.user} is now running')
 
 @bot.command()
@@ -36,7 +46,7 @@ async def ping(ctx):
 @bot.command(name="balance", aliases=["bal"])
 async def balance(ctx):
     usr = ec.getUser(ctx.author)
-    msg = f"Cash: ${usr.cash}\nBank: ${usr.balance}\nTotal: ${usr.balance + usr.cash}"
+    msg = f"Cash: ${"{:,}".format(usr.cash)}\nBank: ${"{:,}".format(usr.balance)}\nTotal: ${"{:,}".format(usr.balance + usr.cash)}"
     await sendEmbed(ctx, msg)
     
 @bot.command(name="work")
@@ -55,7 +65,7 @@ async def deposit(ctx, usrIn):
         try: amount = int(usrIn)
         except ValueError: return await sendEmbed(ctx, "Please enter a number or all", -1)
     usr.deposit(amount)
-    await sendEmbed(ctx, f"You deposited ${amount}.", 1)
+    await sendEmbed(ctx, f"You deposited ${"{:,}".format(amount)}.", 1)
     
 @bot.command(name="withdraw", aliases=["with"])
 async def withdraw(ctx, usrIn):
@@ -68,14 +78,27 @@ async def withdraw(ctx, usrIn):
     except functions.ErrorToHandle as e: 
         print(f"Error: {e}\nusrIn: {usrIn}\nAmount: {amount}\nBalance: {usr.balance}")
         return await sendEmbed(ctx, f"e", -1)
-    await sendEmbed(ctx, f"You withdrew ${amount}.", 1)
+    await sendEmbed(ctx, f"You withdrew ${"{:,}".format(amount)}.", 1)
+
+@bot.command(name="give")
+async def give(ctx, giveUser: discord.Member, usrIn):
+    usr = ec.getUser(ctx.author)
+    if usrIn == "all": amount = usr.cash
+    else:
+        try: amount = int(usrIn)
+        except ValueError: return await sendEmbed(ctx, "Please enter a number or all", -1)
+    usr.cash -= amount
+    giveUser += amount
+    await sendEmbed(ctx, f"You gave ${"{:,}".format(amount)}. to {giveUser.display_name}", 1)
     
 @bot.command(name="leaderboard", aliases=["lb", "baltop", "top", "bt"])
-async def leaderboard():
+async def leaderboard(ctx):
     msg = ""
+    place = 1
     for i in ec.leaderboard():
-        pass
-            
+        msg+=f"{place}) {i.user.display_name}: {"{:,}".format(i.balance + i.cash)}"
+    await sendEmbed(ctx, msg)
+
 
 @deposit.error
 async def deposit_error(ctx, error):
