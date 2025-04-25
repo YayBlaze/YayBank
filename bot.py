@@ -131,15 +131,23 @@ async def leaderboard(ctx):
         place+=1
     await sendEmbed(ctx, msg)
     
-# @bot.command(name="blackjack", aliases=["bj"], brief="Allows you to play blackjack")
-# async def blackjack(ctx, usrIn):
-#     usr = ec.getUser(ctx.author)
-#     if usrIn == "all": amount = usr.cash
-#     else:
-#         try: amount = int(usrIn)
-#         except ValueError: return await sendEmbed(ctx, "Please enter a number or all", -1)
-#     if amount > usr.cash: return await sendEmbed(ctx, "You cannot gamble more money than you have! Please withdraw more", -1)
-    
+@bot.command(name="blackjack", aliases=["bj"], brief="Allows you to play blackjack")
+async def blackjack(ctx, usrIn):
+    usr = ec.getUser(ctx.author)
+    if usrIn == "all": amount = usr.cash
+    else:
+        try: amount = int(usrIn)
+        except ValueError: return await sendEmbed(ctx, "Please enter a number or all", -1)
+    if amount > usr.cash: return await sendEmbed(ctx, "You cannot gamble more money than you have! Please withdraw more", -1)
+    data = {
+        "usrCards": [random.choice(bjcards), random.choice(bjcards), random.choice(bjcards)],
+        "dealerCards": [random.choice(bjcards), random.choice(bjcards), random.choice(bjcards)]
+    }
+    string, string2 = ""
+    for i in data["usrCards"]: string += f"{i} "
+    for i in data["dealerCards"]: string2 += f"{i} "
+    msg = f"Your Hand: {string}\nDealer Hand: {string2}"
+    await sendEmbed(ctx, msg)
 
 @deposit.error
 async def deposit_error(ctx, error):
@@ -150,7 +158,12 @@ async def deposit_error(ctx, error):
 async def withdraw_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await sendEmbed(ctx, "You need to add an amount!", -1)
-        
+
+@blackjack.error
+async def blackjack_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await sendEmbed(ctx, "You need to add an amount!", -1)        
+
 @give.error
 async def give_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument) or isinstance(error, commands.BadArgument):

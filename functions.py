@@ -26,3 +26,5 @@ def getCrimeLose(amount):
         templates = json.load(f)
     template = random.choice(templates)
     return template.replace("${amount}", f"${amount}")
+
+bjcards = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]

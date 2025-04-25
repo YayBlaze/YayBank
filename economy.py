@@ -37,7 +37,14 @@ class BankAccount:
                 raise functions.ErrorToHandle("Not enough balance to withdraw")
             self.balance -= amount
             self.cash += amount
-
+            
+    def setCoolDown(self, type, s):
+        self.cooldowns[type] = s
+    def isCool(self, type):
+        return self.cooldowns[type] <= 0
+    def updateCoolDown(self):
+        for i in self.cooldowns.values():
+            i-=1
 
 class Economy:
     """Economy class to manage user accounts and transactions"""
@@ -56,5 +63,9 @@ class Economy:
             return self.accounts[user]
         
     def leaderboard(self) -> dict[str, BankAccount]:
-        # self.accounts = sorted(self.accounts, key=lambda el: (el).cash + el.balance)
-        return [item for item in self.accounts.values()]
+        print(self.accounts.values())
+        return sorted(self.accounts.values(), key=lambda el: (el.cash + el.balance))
+    
+    def updateCoolDowns(self):
+        for i in self.accounts.values():
+            i.updateCoolDown()
