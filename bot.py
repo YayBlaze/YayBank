@@ -73,7 +73,7 @@ async def work(ctx):
         msg = functions.getWorkMsg(amount)
         usr.setCoolDown("work", 60)
         await sendEmbed(ctx, msg, 1)
-    else: await sendEmbed(ctx, f"You need to wait <t:{usr.cooldowns["work"]}:R>", -1)
+    else: await sendEmbed(ctx, f"You can you this command again <t:{usr.cooldowns["work"]}:R>", -1)
     
 @bot.command(name="crime", brief="Gives you a large amount of money but there is a chance you lose money. Has cooldown")
 async def crime(ctx):
@@ -90,7 +90,7 @@ async def crime(ctx):
             msg = functions.getCrimeLose("{:,}".format(amount))
             await sendEmbed(ctx, msg, -1)
         usr.setCoolDown("crime", 3600)
-    else: await sendEmbed(ctx, f"You need to wait <t:{usr.cooldowns["crime"]}:R>", -1)
+    else: await sendEmbed(ctx, f"You can you this command again <t:{usr.cooldowns["crime"]}:R>", -1)
         
     
 @bot.command(name="deposit", aliases=["dep"], brief="Deposits money from your cash to your bank")

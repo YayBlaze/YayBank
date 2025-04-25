@@ -1,4 +1,4 @@
-import functions, discord, json
+import functions, discord, time
 
 class BankAccount:
     """Bank account class to manage user balance and cash"""
@@ -39,9 +39,9 @@ class BankAccount:
             self.cash += amount
             
     def setCoolDown(self, type, s):
-        self.cooldowns[type] = s
+        self.cooldowns[type] = round(time.time()+s)
     def isCool(self, type):
-        return self.cooldowns[type] <= 0
+        return self.cooldowns[type] <= time.time()
     def updateCoolDown(self):
         for i in self.cooldowns.values():
             i-=1
