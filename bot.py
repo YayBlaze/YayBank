@@ -156,8 +156,8 @@ async def leaderboard(ctx):
 @bot.command(name="blackjack", aliases=["bj"], brief="Allows you to play blackjack")
 async def blackjack(ctx, usrIn):
     usr = ec.getUser(ctx.author)
-    if !usr.isCool("Blackjack"): #checks if the cooldown has worn off
-        await sendEmbed(ctx, f"You can play blackjack again in <t:{usr.cooldowns["Blackjack"]}:R>", -1) #if it hasnt, deny the user to gamble
+    if not usr.isCool("bj"): #checks if the cooldown has worn off
+        await sendEmbed(ctx, f"You can play blackjack again in <t:{usr.cooldowns["bj"]}:R>", -1) #if it hasnt, deny the user to gamble
     if usrIn == "all": amount = usr.cash #set gamble amount to all cash if "all"
     else:
         try: amount = int(usrIn) #otherwise try to make it a number
