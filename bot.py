@@ -1,4 +1,4 @@
-import discord, os, dotenv, time, random, json
+import discord, os, dotenv, time, random, json, copy
 from discord.ext import commands
 from economy import *
 from functions import *
@@ -53,9 +53,9 @@ async def on_ready():
     load()
     print(f'{bot.user} is now running')
 
-@bot.command(brief="Returns Pong if the bot is online")
-async def ping(ctx):
-    await ctx.send('Pong!')
+@bot.command(brief="Returns your card if the bot is online")
+async def magic(ctx):
+    await ctx.send('pretend this is a 3 of clubs emoji pls')
     
 @bot.command(name="balance", aliases=["bal"], brief="Displays your balance. Use `.balance @<username>` to see the balance of someone else")
 async def balance(ctx, target:discord.Member = None):
@@ -156,20 +156,56 @@ async def leaderboard(ctx):
 @bot.command(name="blackjack", aliases=["bj"], brief="Allows you to play blackjack")
 async def blackjack(ctx, usrIn):
     usr = ec.getUser(ctx.author)
-    if usrIn == "all": amount = usr.cash
+    if !usr.isCool("Blackjack"): #checks if the cooldown has worn off
+        await sendEmbed(ctx, f"You can play blackjack again in <t:{usr.cooldowns["Blackjack"]}:R>", -1) #if it hasnt, deny the user to gamble
+    if usrIn == "all": amount = usr.cash #set gamble amount to all cash if "all"
     else:
-        try: amount = int(usrIn)
+        try: amount = int(usrIn) #otherwise try to make it a number
         except ValueError: return await sendEmbed(ctx, "Please enter a number or all", -1)
+    if amount < 200: return await sendEmbed(ctx, "You must place at least $200 for your bet", -1)
     if amount > usr.cash: return await sendEmbed(ctx, "You cannot gamble more money than you have! Please withdraw more", -1)
-    data = {
-        "usrCards": [random.choice(bjcards), random.choice(bjcards), random.choice(bjcards)],
-        "dealerCards": [random.choice(bjcards), random.choice(bjcards), random.choice(bjcards)]
-    }
-    string, string2 = ""
-    for i in data["usrCards"]: string += f"{i} "
-    for i in data["dealerCards"]: string2 += f"{i} "
-    msg = f"Your Hand: {string}\nDealer Hand: {string2}"
-    await sendEmbed(ctx, msg)
+    availableCards = copy.deepcopy(cardList) #have a local copy of the card list
+    aces = [] #list of ace emojis (not filled out)
+    tensCards = [] #list of cards with a value over 9 (not filled out)
+    dealerCards = [] #new list for the dealer's cards
+    playerCards = [] #new list for the player's cards
+    dealerTempValue = 0 #temp 'working' value for dealer's cards
+    dealerValue = 0 #final value for dealer's cards (the one displayed to user)
+    playerTempValue = 0 #same for player
+    playerValue = 0 #same for player
+    for i in range(2): #draw the first two cards
+        dealerCards.append(random.choice(availableCards)) #add a random card
+        availableCards.pop(cardList.index(dealerCards[i])) #remove the card from the local list of cards
+        playerCards.append(random.choice(availableCards)) #repeat add
+        availableCards.pop(cardList.index(playerCards[i])) #repeat remove
+    if set(playerCards).intersection(aces) and set(playerCards).intersection(tensCards): #if the player has a blackjack (having an ace and a card greater than 9)
+        if set(dealerCards).intersection(aces) and set(dealerCards).intersection(tensCards): #if the dealer also has a blackjack
+            await sendEmbed(ctx, f"Result: Push money back \n Dealer: Blackjack \n {dealerCards[0]} {dealerCards[1]} \n Player: Blackjack \n {playerCards[0]} {playerCards[1]}") #womp womp money back
+        else: #otherwise only player has blackjack, and therefore wins
+            Spoils = usrIn * 1.5 #calculate the spoils, multiplied by 1.5 because blackjack
+            if set(dealerCards).intersection(aces): #determine dealer value (soft number, ie ace=11)
+                if dealerCards[0] in aces: #which one is which #1
+                    dealerValue = cardList.index(dealerCards[1]) #get the card index value from the OG card list
+                    while dealerValue > 12: #get the value between 0 and 12
+                        dealerValue -= 13
+                    dealerValue += 1 #add one, accounting for index, and you get the value of the card
+                else: #hm must be the other one then
+                    dealerValue = cardList.index(dealerCards[0])
+                    while dealerValue > 12:
+                        dealerValue -= 13
+                    dealerValue += 1
+            else: #neither of the dealer's cards are aces
+                for i in range(2): #repeat through both cards
+                    dealerTempValue = cardList.index(dealerCards[i]) #add the value to the temp list to manipulate it
+                    while dealerTempValue > 12: #make it between 0 and 12
+                        dealerTempValue -= 13
+                    dealerTempValue += 1 #add 1, now you have the card's value
+                    dealerValue += dealerTempValue #add the temp value to the final value, and repeat for the second card
+            await sendEmbed(ctx, f"Result: Dealer busts ${Spoils} \n Dealer: Soft {dealerValue} \n {dealerCards[0]} {dealerCards[1]} \n Player: Blackjack \n {playerCards[0]} {playerCards[1]}", 1) #Player W
+    #else: #lmao you didn't immediately get a blackjack? (currently commented so it doesn't throw an error)
+        #player hit or stand, buttons and editing messages should be interesting :)
+        
+
 
 @deposit.error
 async def deposit_error(ctx, error):
