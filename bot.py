@@ -55,7 +55,7 @@ async def on_ready():
 
 @bot.command(brief="Returns your card if the bot is online")
 async def magic(ctx):
-    await ctx.send('pretend this is a 3 of clubs emoji pls')
+    await ctx.send(':3c:')
     
 @bot.command(name="balance", aliases=["bal"], brief="Displays your balance. Use `.balance @<username>` to see the balance of someone else")
 async def balance(ctx, target:discord.Member = None):
@@ -182,6 +182,7 @@ async def blackjack(ctx, usrIn):
         availableCards.pop(cardList.index(dealerCards[i])) #remove the card from the local list of cards
         playerCards.append(random.choice(availableCards)) #repeat add
         availableCards.pop(cardList.index(playerCards[i])) #repeat remove
+    Result = await sendEmbed(ctx, f"Hit: Draw another card \n Stand: keep your cards \n Dealer: {cardList.index(dealerCards[0])} \n {dealerCards[0]} :blue_square: \n Player: bruh i dont wanna do that math rn \n {playerCards[0]} {playerCards[1]}")
     if set(playerCards).intersection(aces) and set(playerCards).intersection(tensCards): #if the player has a blackjack (having an ace and a card greater than 9)
         if set(dealerCards).intersection(aces) and set(dealerCards).intersection(tensCards): #if the dealer also has a blackjack
             await sendEmbed(ctx, f"Result: Push money back \n Dealer: Blackjack \n {dealerCards[0]} {dealerCards[1]} \n Player: Blackjack \n {playerCards[0]} {playerCards[1]}") #womp womp money back
