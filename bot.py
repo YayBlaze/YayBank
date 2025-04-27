@@ -55,7 +55,7 @@ async def on_ready():
 
 @bot.command(brief="Returns your card if the bot is online")
 async def magic(ctx):
-    await ctx.send('<:3c:1365939525523734558>')
+    await ctx.send('Was THIS <:3c:1365939525523734558> your card?')
     
 @bot.command(name="balance", aliases=["bal"], brief="Displays your balance. Use `.balance @<username>` to see the balance of someone else")
 async def balance(ctx, target:discord.Member = None):
