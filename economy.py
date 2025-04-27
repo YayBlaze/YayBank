@@ -14,12 +14,13 @@ class BankAccount:
         self.balance = 0
         
     def toJson(self):
-        json = {'cash': self.cash, 'balance': self.balance}
+        json = {'cash': self.cash, 'balance': self.balance, 'cool': self.cooldowns}
         return json
     
     def loadJson(self, json:dict):
         self.cash = json['cash']
         self.balance = json['balance']
+        self.cooldowns = json['cool']
         
     def addMoney(self, amount):
         self.cash += amount
@@ -42,9 +43,6 @@ class BankAccount:
         self.cooldowns[type] = round(time.time()+s)
     def isCool(self, type):
         return self.cooldowns[type] <= time.time()
-    def updateCoolDown(self):
-        for i in self.cooldowns.values():
-            i-=1
 
 class Economy:
     """Economy class to manage user accounts and transactions"""
@@ -63,9 +61,4 @@ class Economy:
             return self.accounts[user]
         
     def leaderboard(self) -> dict[str, BankAccount]:
-        print(self.accounts.values())
         return sorted(self.accounts.values(), key=lambda el: (el.cash + el.balance))
-    
-    def updateCoolDowns(self):
-        for i in self.accounts.values():
-            i.updateCoolDown()
