@@ -61,4 +61,7 @@ class Economy:
             return self.accounts[user]
         
     def leaderboard(self) -> dict[str, BankAccount]:
-        return sorted(self.accounts.values(), key=lambda el: (el.cash + el.balance))
+        return sorted(self.accounts.values(), key=lambda el: (el.cash + el.balance), reverse=True)
+        # def sort(account: BankAccount) -> int:
+        #     return  account.cash+account.balance
+        # return sorted(self.accounts.values(), key=sort)
