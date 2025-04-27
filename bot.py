@@ -15,7 +15,7 @@ bot = commands.Bot(command_prefix=".", intents=intents)
 ec = Economy()
 
 def save():
-    file = open("save.json", "w")
+    file = open("save.json", "w", encoding="utf-8")
     saveJson = {}
     for i in ec.accounts:
         saveJson[i.id] = ec.accounts[i].toJson()
@@ -24,7 +24,7 @@ def save():
     file.close()
 
 def load():
-    file = open("save.json", "r")
+    file = open("save.json", "r", encoding="utf-8")
     jsonIN = json.load(file)
     # print(jsonIN)
     file.close()
@@ -71,7 +71,7 @@ async def work(ctx):
         amount = random.randint(25, 750)
         usr.addMoney(amount)
         msg = functions.getWorkMsg(amount)
-        usr.setCoolDown("work", 60)
+        usr.setCoolDown("work", 30)
         await sendEmbed(ctx, msg, 1)
     else: await sendEmbed(ctx, f"You can you this command again <t:{usr.cooldowns["work"]}:R>", -1)
     
@@ -127,6 +127,21 @@ async def give(ctx, giveUser: discord.Member, usrIn):
     usr.cash -= amount
     ec.getUser(giveUser).cash += amount
     await sendEmbed(ctx, f"You gave ${"{:,}".format(amount)}. to {giveUser.display_name}", 1)
+
+@bot.command(name="rob", brief="use .rob <user> to steal money from them")
+async def rob(ctx, stealUser: discord.Member):
+    target = ec.getUser(stealUser)
+    usr = ec.getUser(ctx.author)
+    if not usr.isCool('rob'): return await sendEmbed(ctx, f"You can use this command again in <t:{usr.cooldowns["rob"]}:R>", -1)
+    if target.cash <=0:
+        usr.setCoolDown("rob", 600)
+        return await sendEmbed(ctx, "That user doesn't have any cash!", -1)
+    else:
+        amount = round((target.cash) * random.uniform(0.25, 0.7))
+        target.cash -= amount
+        usr.cash += amount
+        await sendEmbed(ctx, f"You stole ${amount} from {stealUser.display_name}", -1)
+
     
 @bot.command(name="leaderboard", aliases=["lb", "baltop", "top", "bt"], brief="Displays the top 10 balances")
 async def leaderboard(ctx):
