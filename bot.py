@@ -43,7 +43,18 @@ async def sendEmbed(ctx, message:str, type:int = 0, usr:discord.Member = None):
     embed = discord.Embed(color=color)
     embed.set_author(name=usr.display_name, icon_url=usr.display_avatar)
     embed.description = message
-    await ctx.send(embed=embed)
+    return await ctx.send(embed=embed)
+
+async def editEmbed(ctx:discord.Message, message:str, type:int = 0, usr:discord.Member = None):
+    save()
+    if usr == None: usr = ctx.author
+    if type < 0: color = discord.Color.red()
+    elif type > 0: color = discord.Color.green()
+    else: color = discord.Color.blurple()
+    embed = discord.Embed(color=color)
+    embed.set_author(name=usr.display_name, icon_url=usr.display_avatar)
+    embed.description = message
+    return await ctx.edit(embed=embed)
     
 
 @bot.event
@@ -153,7 +164,7 @@ async def leaderboard(ctx):
     place = 1
     for i in ec.leaderboard():
         if place>10: break
-        msg+=f"{place}) {i.user.display_name}: {"{:,}".format(i.balance + i.cash)}\n"
+        msg+=f"{place}) {i.user.display_name}: :coin: {"{:,}".format(i.balance + i.cash)}\n"
         place+=1
     await sendEmbed(ctx, msg)
 
@@ -171,19 +182,39 @@ async def taxes(ctx):
             usr.setCoolDown("tax", 604800)
             return await sendEmbed(ctx, f"You have paid :coin: {amount} in taxes.", -1)
         place+=1
+        
+@bot.command(name='roulette', aliases=['roll', 'roul'], brief="Allows you to play roulette")
+async def roulette(ctx, am, space):
+    usr = ec.getUser(ctx.author)
+    if am == "all": amount = usr.cash
+    else:
+        try: amount = int(am)
+        except ValueError: return await sendEmbed(ctx, "❌ Please enter a number or all", -1)
+    if amount < 200: return await sendEmbed(ctx, "❌ You must place at least :coin: 200 for your bet", -1)
+    if amount > usr.cash: return await sendEmbed(ctx, "❌ You cannot gamble more money than you have! Please withdraw more", -1)
+    if space not in rouletteOptions: 
+        msg = "❌ You must bet on one of the following spaces:\n"
+        for i in rouletteOptions: msg+=f"`{i}`, "
+        return await sendEmbed(ctx, msg, -1)
+    if space == random.choice(rouletteOptions):
+        usr.cash += amount
+        return await sendEmbed(ctx, f"✅ {ctx.author.display_name} won :coin: {amount} on roulette!", 1)
+    else:
+        usr.cash -= amount
+        return await sendEmbed(ctx, f"❌ {ctx.author.display_name} lost :coin: {amount} on roulette", -1)
     
     
 @bot.command(name="blackjack", aliases=["bj"], brief="Allows you to play blackjack")
 async def blackjack(ctx, usrIn):
     usr = ec.getUser(ctx.author)
     if not usr.isCool("bj"): #checks if the cooldown has worn off
-        await sendEmbed(ctx, f"You can play blackjack again in <t:{usr.cooldowns["bj"]}:R>", -1) #if it hasnt, deny the user to gamble
+        await sendEmbed(ctx, f"❌ You can play blackjack again in <t:{usr.cooldowns["bj"]}:R>", -1) #if it hasnt, deny the user to gamble
     if usrIn == "all": amount = usr.cash #set gamble amount to all cash if "all"
     else:
         try: amount = int(usrIn) #otherwise try to make it a number
-        except ValueError: return await sendEmbed(ctx, "Please enter a number or all", -1)
-    if amount < 200: return await sendEmbed(ctx, "You must place at least :coin: 200 for your bet", -1)
-    if amount > usr.cash: return await sendEmbed(ctx, "You cannot gamble more money than you have! Please withdraw more", -1)
+        except ValueError: return await sendEmbed(ctx, "❌ Please enter a number or all", -1)
+    if amount < 200: return await sendEmbed(ctx, "❌ You must place at least :coin: 200 for your bet", -1)
+    if amount > usr.cash: return await sendEmbed(ctx, "❌ You cannot gamble more money than you have! Please withdraw more", -1)
     availableCards = copy.deepcopy(cardList) #have a local copy of the card list
     aces = [] #list of ace emojis (not filled out)
     tensCards = [] #list of cards with a value over 9 (not filled out)
@@ -198,10 +229,10 @@ async def blackjack(ctx, usrIn):
         availableCards.pop(cardList.index(dealerCards[i])) #remove the card from the local list of cards
         playerCards.append(availableCards[12]) #repeat add - rigged at the moment
         availableCards.pop(cardList.index(playerCards[i])) #repeat remove
-    Result = await sendEmbed(ctx, f"Hit: Draw another card \n Stand: keep your cards \n Dealer: {cardList.index(dealerCards[0])} \n {dealerCards[0]} :blue_square: \n Player: bruh i dont wanna do that math rn \n {playerCards[0]} {playerCards[1]}")
+    Result = await sendEmbed(ctx, f"`hit` - Draw another card \n `stand` - end the game \n Dealer: {cardList.index(dealerCards[0])} \n {dealerCards[0]} :blue_square: \n Player: bruh i dont wanna do that math rn \n {playerCards[0]} {playerCards[1]}")
     if set(playerCards).intersection(aces) and set(playerCards).intersection(tensCards): #if the player has a blackjack (having an ace and a card greater than 9)
         if set(dealerCards).intersection(aces) and set(dealerCards).intersection(tensCards): #if the dealer also has a blackjack
-            await Result.edit(ctx, f"Result: Push money back \n Dealer: Blackjack \n {dealerCards[0]} {dealerCards[1]} \n Player: Blackjack \n {playerCards[0]} {playerCards[1]}") #womp womp money back, should in theory edit the og message
+            await editEmbed(Result, f"Result: Push money back \n Dealer: Blackjack \n {dealerCards[0]} {dealerCards[1]} \n Player: Blackjack \n {playerCards[0]} {playerCards[1]}") #womp womp money back, should in theory edit the og message
         else: #otherwise only player has blackjack, and therefore wins
             Spoils = usrIn * 1.5 #calculate the spoils, multiplied by 1.5 because blackjack
             if set(dealerCards).intersection(aces): #determine dealer value (soft number, ie ace=11)
@@ -232,22 +263,27 @@ async def blackjack(ctx, usrIn):
 @deposit.error
 async def deposit_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
-        await sendEmbed(ctx, "You need to add an amount!", -1)
+        await sendEmbed(ctx, "❌ You need to add an amount!", -1)
 
 @withdraw.error
 async def withdraw_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
-        await sendEmbed(ctx, "You need to add an amount!", -1)
+        await sendEmbed(ctx, "❌ You need to add an amount!", -1)
 
 @blackjack.error
 async def blackjack_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
-        await sendEmbed(ctx, "You need to add an amount!", -1)        
+        await sendEmbed(ctx, "❌ You need to add an amount!", -1)   
+        
+@roulette.error
+async def roulette_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument) or isinstance(error, commands.BadArgument):
+        await sendEmbed(ctx, "❌ Too few arguments given.\n\nUsage:\n`roulette <bet> <space>`")   
 
 @give.error
 async def give_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument) or isinstance(error, commands.BadArgument):
-        await sendEmbed(ctx, "You need to @ the person you want to give the money to and then add the amount", -1)
+        await sendEmbed(ctx, "❌ You need to @ the person you want to give the money to and then add the amount", -1)
 # Run the bot
 if __name__ == "__main__":
     bot.run(TOKEN)
