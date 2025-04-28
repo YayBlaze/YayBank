@@ -194,7 +194,7 @@ async def blackjack(ctx, usrIn):
     for i in range(2): #draw the first two cards
         dealerCards.append(random.choice(availableCards)) #add a random card
         availableCards.pop(cardList.index(dealerCards[i])) #remove the card from the local list of cards
-        playerCards.append(random.choice(availableCards)) #repeat add
+        playerCards.append(availableCards[12]) #repeat add - rigged at the moment
         availableCards.pop(cardList.index(playerCards[i])) #repeat remove
     Result = await sendEmbed(ctx, f"Hit: Draw another card \n Stand: keep your cards \n Dealer: {cardList.index(dealerCards[0])} \n {dealerCards[0]} :blue_square: \n Player: bruh i dont wanna do that math rn \n {playerCards[0]} {playerCards[1]}")
     if set(playerCards).intersection(aces) and set(playerCards).intersection(tensCards): #if the player has a blackjack (having an ace and a card greater than 9)
