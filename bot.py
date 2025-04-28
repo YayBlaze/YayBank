@@ -84,7 +84,7 @@ async def work(ctx):
         msg = functions.getWorkMsg(amount)
         usr.setCoolDown("work", 30)
         await sendEmbed(ctx, msg, 1)
-    else: await sendEmbed(ctx, f"You can you this command again <t:{usr.cooldowns["work"]}:R>", -1)
+    else: await sendEmbed(ctx, f"❌ You can you this command again <t:{usr.cooldowns["work"]}:R>", -1)
     
 @bot.command(name="crime", brief="Gives you a large amount of money but there is a chance you lose money. Has cooldown")
 async def crime(ctx):
@@ -101,7 +101,7 @@ async def crime(ctx):
             msg = functions.getCrimeLose("{:,}".format(amount))
             await sendEmbed(ctx, msg, -1)
         usr.setCoolDown("crime", 3600)
-    else: await sendEmbed(ctx, f"You can you this command again <t:{usr.cooldowns["crime"]}:R>", -1)
+    else: await sendEmbed(ctx, f"❌ You can you this command again <t:{usr.cooldowns["crime"]}:R>", -1)
         
     
 @bot.command(name="deposit", aliases=["dep"], brief="Deposits money from your cash to your bank")
@@ -110,9 +110,9 @@ async def deposit(ctx, usrIn):
     if usrIn == "all": amount = usr.cash
     else:
         try: amount = int(usrIn)
-        except ValueError: return await sendEmbed(ctx, "Please enter a number or all", -1)
+        except ValueError: return await sendEmbed(ctx, "❌ Please enter a number or all", -1)
     usr.deposit(amount)
-    await sendEmbed(ctx, f"You deposited :coin: {"{:,}".format(amount)}.", 1)
+    await sendEmbed(ctx, f"✅ You deposited :coin: {"{:,}".format(amount)}.", 1)
     
 @bot.command(name="withdraw", aliases=["with"], brief="Withdraws money from your bank to your cash")
 async def withdraw(ctx, usrIn):
@@ -120,12 +120,12 @@ async def withdraw(ctx, usrIn):
     if usrIn == "all": amount = usr.balance
     else:
         try: amount = int(usrIn)
-        except ValueError: return await sendEmbed(ctx, "Please enter a number or all", -1)
+        except ValueError: return await sendEmbed(ctx, "❌ Please enter a number or all", -1)
     try: usr.withdraw(amount)
     except functions.ErrorToHandle as e: 
         print(f"Error: {e}\nusrIn: {usrIn}\nAmount: {amount}\nBalance: {usr.balance}")
         return await sendEmbed(ctx, f"e", -1)
-    await sendEmbed(ctx, f"You withdrew :coin: {"{:,}".format(amount)}.", 1)
+    await sendEmbed(ctx, f"✅ You withdrew :coin: {"{:,}".format(amount)}.", 1)
 
 @bot.command(name="give", brief="use `.give @<user> <amount>` to give someone else money")
 async def give(ctx, giveUser: discord.Member, usrIn):
@@ -133,29 +133,29 @@ async def give(ctx, giveUser: discord.Member, usrIn):
     if usrIn == "all": amount = usr.cash
     else:
         try: amount = int(usrIn)
-        except ValueError: return await sendEmbed(ctx, "Please enter a number or all", -1)
-    if amount > usr.cash: return await sendEmbed(ctx, "You cannot give more money than you have! Please withdraw more", -1)
+        except ValueError: return await sendEmbed(ctx, "❌ Please enter a number or all", -1)
+    if amount > usr.cash: return await sendEmbed(ctx, "❌ You cannot give more money than you have! Please withdraw more", -1)
     usr.cash -= amount
     ec.getUser(giveUser).cash += amount
-    await sendEmbed(ctx, f"You gave :coin: {"{:,}".format(amount)}. to {giveUser.display_name}", 1)
+    await sendEmbed(ctx, f"✅ You gave :coin: {"{:,}".format(amount)}. to {giveUser.display_name}", 1)
 
 @bot.command(name="rob", brief="use .rob <user> to steal money from them")
 async def rob(ctx, stealUser: discord.Member):
     target = ec.getUser(stealUser)
     usr = ec.getUser(ctx.author)
-    if not usr.isCool('rob'): return await sendEmbed(ctx, f"You can use this command again in <t:{usr.cooldowns["rob"]}:R>", -1)
+    if not usr.isCool('rob'): return await sendEmbed(ctx, f"❌ You can use this command again in <t:{usr.cooldowns["rob"]}:R>", -1)
     if target.cash <=0:
         usr.setCoolDown("rob", 600)
-        return await sendEmbed(ctx, "That user doesn't have any cash!", -1)
+        return await sendEmbed(ctx, "❌ That user doesn't have any cash!", -1)
     else:
         amount = round((target.cash) * random.uniform(0.25, 0.7))
         if bool(random.getrandbits(1)):
             target.cash -= amount
             usr.cash += amount
-            await sendEmbed(ctx, f"You stole :coin: {amount} from {stealUser.display_name}", 1)
+            await sendEmbed(ctx, f"You stole :coin: {"{:,}".format(amount)} from {stealUser.display_name}", 1)
         else:
             usr.cash -= amount
-            await sendEmbed(ctx, f"You got caught trying to steal from {stealUser.display_name} and was fined :coin: {amount}", -1)
+            await sendEmbed(ctx, f"You got caught trying to steal from {stealUser.display_name} and was fined :coin: {"{:,}".format(amount)}", -1)
 
     
 @bot.command(name="leaderboard", aliases=["lb", "baltop", "top", "bt"], brief="Displays the top 10 balances")
@@ -180,7 +180,7 @@ async def taxes(ctx):
             usr.cash -= amount
             ec.socialSecurity += amount
             usr.setCoolDown("tax", 604800)
-            return await sendEmbed(ctx, f"You have paid :coin: {amount} in taxes.", -1)
+            return await sendEmbed(ctx, f"You have paid :coin: {"{:,}".format(amount)} in taxes.", -1)
         place+=1
         
 @bot.command(name='roulette', aliases=['roll', 'roul'], brief="Allows you to play roulette")
@@ -198,10 +198,10 @@ async def roulette(ctx, am, space):
         return await sendEmbed(ctx, msg, -1)
     if space == random.choice(rouletteOptions):
         usr.cash += amount
-        return await sendEmbed(ctx, f"✅ {ctx.author.display_name} won :coin: {amount} on roulette!", 1)
+        return await sendEmbed(ctx, f"{ctx.author.display_name} won :coin: {"{:,}".format(amount)} on roulette!", 1)
     else:
         usr.cash -= amount
-        return await sendEmbed(ctx, f"❌ {ctx.author.display_name} lost :coin: {amount} on roulette", -1)
+        return await sendEmbed(ctx, f"{ctx.author.display_name} lost :coin: {"{:,}".format(amount)} on roulette", -1)
     
     
 @bot.command(name="blackjack", aliases=["bj"], brief="Allows you to play blackjack")
