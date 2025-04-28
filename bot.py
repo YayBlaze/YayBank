@@ -55,7 +55,7 @@ async def on_ready():
 
 @bot.command(brief="Returns your card if the bot is online")
 async def magic(ctx):
-    await ctx.send('<:3c:1365939525523734558>')
+    await ctx.send('Was THIS <:3c:1365939525523734558> your card?')
     
 @bot.command(name="balance", aliases=["bal"], brief="Displays your balance. Use `.balance @<username>` to see the balance of someone else")
 async def balance(ctx, target:discord.Member = None):
@@ -199,7 +199,7 @@ async def blackjack(ctx, usrIn):
     Result = await sendEmbed(ctx, f"Hit: Draw another card \n Stand: keep your cards \n Dealer: {cardList.index(dealerCards[0])} \n {dealerCards[0]} :blue_square: \n Player: bruh i dont wanna do that math rn \n {playerCards[0]} {playerCards[1]}")
     if set(playerCards).intersection(aces) and set(playerCards).intersection(tensCards): #if the player has a blackjack (having an ace and a card greater than 9)
         if set(dealerCards).intersection(aces) and set(dealerCards).intersection(tensCards): #if the dealer also has a blackjack
-            await sendEmbed(ctx, f"Result: Push money back \n Dealer: Blackjack \n {dealerCards[0]} {dealerCards[1]} \n Player: Blackjack \n {playerCards[0]} {playerCards[1]}") #womp womp money back
+            await Result.edit(ctx, f"Result: Push money back \n Dealer: Blackjack \n {dealerCards[0]} {dealerCards[1]} \n Player: Blackjack \n {playerCards[0]} {playerCards[1]}") #womp womp money back, should in theory edit the og message
         else: #otherwise only player has blackjack, and therefore wins
             Spoils = usrIn * 1.5 #calculate the spoils, multiplied by 1.5 because blackjack
             if set(dealerCards).intersection(aces): #determine dealer value (soft number, ie ace=11)
@@ -220,8 +220,8 @@ async def blackjack(ctx, usrIn):
                         dealerTempValue -= 13
                     dealerTempValue += 1 #add 1, now you have the card's value
                     dealerValue += dealerTempValue #add the temp value to the final value, and repeat for the second card
-            await sendEmbed(ctx, f"Result: Dealer busts :coin: {Spoils} \n Dealer: Soft {dealerValue} \n {dealerCards[0]} {dealerCards[1]} \n Player: Blackjack \n {playerCards[0]} {playerCards[1]}", 1) #Player W
-    else: #lmao you didn't immediately get a blackjack? (currently commented so it doesn't throw an error)
+            await Result.edit(ctx, f"Result: Dealer busts :coin: {Spoils} \n Dealer: Soft {dealerValue} \n {dealerCards[0]} {dealerCards[1]} \n Player: Blackjack \n {playerCards[0]} {playerCards[1]}", 1) #Player W, should edit the message
+    #else: #lmao you didn't immediately get a blackjack? (currently commented so it doesn't throw an error)
         #player hit or stand, buttons and editing messages should be interesting :)
         await sendEmbed(ctx, "You didn't get a blackjack! You lose ig because i haven't coded this part yet", -1)
         
