@@ -160,6 +160,7 @@ async def leaderboard(ctx):
 @bot.command(name="taxes", aliases=["tax"], brief="Command you use to pay taxes")
 async def taxes(ctx):
     usr = ec.getUser(ctx.author)
+    if not usr.isCool("tax"): return await sendEmbed(ctx, "You don't owe any taxes!", 1)
     place = 1
     for i in ec.leaderboard():
         if place > 3: return await sendEmbed(ctx, "You don't owe any taxes!", 1)
@@ -167,6 +168,7 @@ async def taxes(ctx):
             amount = round((usr.balance+usr.cash) * 0.025)
             usr.cash -= amount
             ec.socialSecurity += amount
+            usr.setCoolDown("tax", 604800)
             return await sendEmbed(ctx, f"You have paid :coin: {amount} in taxes.", -1)
         place+=1
     
