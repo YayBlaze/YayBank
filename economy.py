@@ -48,6 +48,7 @@ class Economy:
     """Economy class to manage user accounts and transactions"""
     
     accounts: {discord.Member, BankAccount} = {}
+    socialSecurity = 0
     
     
     def __init__(self):
@@ -62,6 +63,3 @@ class Economy:
         
     def leaderboard(self) -> dict[str, BankAccount]:
         return sorted(self.accounts.values(), key=lambda el: (el.cash + el.balance), reverse=True)
-        # def sort(account: BankAccount) -> int:
-        #     return  account.cash+account.balance
-        # return sorted(self.accounts.values(), key=sort)

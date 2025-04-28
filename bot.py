@@ -156,6 +156,20 @@ async def leaderboard(ctx):
         msg+=f"{place}) {i.user.display_name}: {"{:,}".format(i.balance + i.cash)}\n"
         place+=1
     await sendEmbed(ctx, msg)
+
+@bot.command(name="taxes", aliases=["tax"], brief="Command you use to pay taxes")
+async def taxes(ctx):
+    usr = ec.getUser(ctx.author)
+    place = 1
+    for i in ec.leaderboard():
+        if place > 3: return await sendEmbed(ctx, "You don't owe any taxes!", 1)
+        if i.user == ctx.author: 
+            amount = round((usr.balance+usr.cash) * 0.025)
+            usr.cash -= amount
+            ec.socialSecurity += amount
+            return await sendEmbed(ctx, f"You have paid :coin: {amount} in taxes.", -1)
+        place+=1
+    
     
 @bot.command(name="blackjack", aliases=["bj"], brief="Allows you to play blackjack")
 async def blackjack(ctx, usrIn):
@@ -207,8 +221,9 @@ async def blackjack(ctx, usrIn):
                     dealerTempValue += 1 #add 1, now you have the card's value
                     dealerValue += dealerTempValue #add the temp value to the final value, and repeat for the second card
             await sendEmbed(ctx, f"Result: Dealer busts :coin: {Spoils} \n Dealer: Soft {dealerValue} \n {dealerCards[0]} {dealerCards[1]} \n Player: Blackjack \n {playerCards[0]} {playerCards[1]}", 1) #Player W
-    #else: #lmao you didn't immediately get a blackjack? (currently commented so it doesn't throw an error)
+    else: #lmao you didn't immediately get a blackjack? (currently commented so it doesn't throw an error)
         #player hit or stand, buttons and editing messages should be interesting :)
+        await sendEmbed(ctx, "You didn't get a blackjack! You lose ig because i haven't coded this part yet", -1)
         
 
 
