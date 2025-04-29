@@ -195,7 +195,7 @@ async def roulette(ctx, am, space):
     else:
         try: amount = int(am)
         except ValueError: return await sendEmbed(ctx, "❌ Please enter a number or all", -1)
-    # if amount < 200: return await sendEmbed(ctx, "❌ You must place at least :coin: 200 for your bet", -1)
+    if amount < 200: return await sendEmbed(ctx, "❌ You must place at least :coin: 200 for your bet", -1)
     if amount > usr.cash: return await sendEmbed(ctx, "❌ You cannot gamble more money than you have! Please withdraw more", -1)
     if space not in rouletteOptions: 
         msg = "❌ You must bet on one of the following spaces:\n"
