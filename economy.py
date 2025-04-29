@@ -1,4 +1,4 @@
-import functions, discord, json
+import functions, discord, time
 
 class BankAccount:
     """Bank account class to manage user balance and cash"""
@@ -6,7 +6,7 @@ class BankAccount:
     cash = None
     total = None
     user: discord.Member = None
-    cooldowns: {str, int} = {}
+    cooldowns: {str, int} = {"work": 0, "crime": 0, "bj": 0}
     
     def __init__(self, user: discord.Member):
         self.cash = 0
@@ -14,12 +14,13 @@ class BankAccount:
         self.balance = 0
         
     def toJson(self):
-        json = {'cash': self.cash, 'balance': self.balance}
+        json = {'cash': self.cash, 'balance': self.balance, 'cool': self.cooldowns}
         return json
     
     def loadJson(self, json:dict):
         self.cash = json['cash']
         self.balance = json['balance']
+        self.cooldowns = json['cool']
         
     def addMoney(self, amount):
         self.cash += amount
@@ -37,12 +38,17 @@ class BankAccount:
                 raise functions.ErrorToHandle("Not enough balance to withdraw")
             self.balance -= amount
             self.cash += amount
-
+            
+    def setCoolDown(self, type, s):
+        self.cooldowns[type] = round(time.time()+s)
+    def isCool(self, type):
+        return self.cooldowns[type] <= time.time()
 
 class Economy:
     """Economy class to manage user accounts and transactions"""
     
     accounts: {discord.Member, BankAccount} = {}
+    socialSecurity = 0
     
     
     def __init__(self):
@@ -56,5 +62,4 @@ class Economy:
             return self.accounts[user]
         
     def leaderboard(self) -> dict[str, BankAccount]:
-        # self.accounts = sorted(self.accounts, key=lambda el: (el).cash + el.balance)
-        return [item for item in self.accounts.values()]
+        return sorted(self.accounts.values(), key=lambda el: (el.cash + el.balance), reverse=True)
