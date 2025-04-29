@@ -204,8 +204,8 @@ async def roulette(ctx, am, space):
     correct = random.randint(1, 36)
     if space == "1-18" and correct <= 18: await win()
     elif space == "19-36" and correct >=19: await win()
-    elif (space == "red" or space == "even") and correct % 2 == 0: await win()
-    elif (space == "black" or space == "odd") and correct % 2 != 0: await win()
+    elif (space == "red" or space == "odd") and correct % 2 != 0: await win()
+    elif (space == "black" or space == "even") and correct % 2 == 0: await win()
     else:
         usr.cash -= amount
         if correct % 2 == 0: color = "red"
@@ -215,6 +215,7 @@ async def roulette(ctx, am, space):
     
 @bot.command(name="blackjack", aliases=["bj"], brief="Allows you to play blackjack")
 async def blackjack(ctx, usrIn):
+    return await sendEmbed(ctx, "❌ I haven't coded this yet :(", -1)
     usr = ec.getUser(ctx.author)
     if not usr.isCool("bj"): #checks if the cooldown has worn off
         await sendEmbed(ctx, f"❌ You can play blackjack again in <t:{usr.cooldowns["bj"]}:R>", -1) #if it hasnt, deny the user to gamble
