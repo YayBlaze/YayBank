@@ -187,7 +187,7 @@ async def taxes(ctx):
 async def roulette(ctx, am, space):
     async def win():
         usr.cash += amount
-        if correct % 2 == 0: color = "red"
+        if correct % 2 != 0: color = "red"
         else: color = "black"
         return await sendEmbed(ctx, f"It rolled {color} {correct}\n{ctx.author.display_name} won :coin: {"{:,}".format(amount)} on roulette!", 1)
     usr = ec.getUser(ctx.author)
@@ -195,7 +195,7 @@ async def roulette(ctx, am, space):
     else:
         try: amount = int(am)
         except ValueError: return await sendEmbed(ctx, "❌ Please enter a number or all", -1)
-    # if amount < 200: return await sendEmbed(ctx, "❌ You must place at least :coin: 200 for your bet", -1)
+    if amount < 200: return await sendEmbed(ctx, "❌ You must place at least :coin: 200 for your bet", -1)
     if amount > usr.cash: return await sendEmbed(ctx, "❌ You cannot gamble more money than you have! Please withdraw more", -1)
     if space not in rouletteOptions: 
         msg = "❌ You must bet on one of the following spaces:\n"
@@ -208,7 +208,7 @@ async def roulette(ctx, am, space):
     elif (space == "black" or space == "even") and correct % 2 == 0: await win()
     else:
         usr.cash -= amount
-        if correct % 2 == 0: color = "red"
+        if correct % 2 != 0: color = "red"
         else: color = "black"
         return await sendEmbed(ctx, f"It rolled {color} {correct}\n{ctx.author.display_name} lost :coin: {"{:,}".format(amount)} on roulette", -1)
     
