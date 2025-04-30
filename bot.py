@@ -55,6 +55,19 @@ async def editEmbed(ctx:discord.Message, message:str, type:int = 0, usr:discord.
     embed.set_author(name=usr.display_name, icon_url=usr.display_avatar)
     embed.description = message
     return await ctx.edit(embed=embed)
+
+def getUser(ctx, usrIn):
+    if type(usrIn) is discord.Member: return usrIn
+    if type(usrIn) is not str: raise ErrorToHandle("❌ Please enter a user")
+    match = []
+    for i in ctx.guild.members:
+        if usrIn in i.name or usrIn in i.display_name: match.append(i)
+    if len(match) < 1: raise ErrorToHandle("❌ User Not Found")
+    if len(match) == 1: return match[0]
+    else: 
+        msg = "❌ Multiple users found. Please enter one of the following:\n\n"
+        for i in match: msg += f"`{i.name}`\n"
+        raise ErrorToHandle(msg)
     
 
 @bot.event
@@ -69,8 +82,12 @@ async def magic(ctx):
     await ctx.send('Was THIS <:3c:1365939525523734558> your card?')
     
 @bot.command(name="balance", aliases=["bal"], brief="Displays your balance. Use `.balance @<username>` to see the balance of someone else")
-async def balance(ctx, target:discord.Member = None):
+async def balance(ctx, target = None):
     if target == None: target = ctx.author
+    else: 
+        try: target = getUser(ctx, target)
+        except ErrorToHandle as e:
+            return await sendEmbed(ctx, f"{e}", -1)
     usr = ec.getUser(target)
     msg = f"Cash: :coin: {"{:,}".format(usr.cash)}\nBank: :coin: {"{:,}".format(usr.balance)}\nTotal: :coin: {"{:,}".format(usr.balance + usr.cash)}"
     await sendEmbed(ctx, msg, usr=target)
@@ -128,7 +145,9 @@ async def withdraw(ctx, usrIn):
     await sendEmbed(ctx, f"✅ You withdrew :coin: {"{:,}".format(amount)}.", 1)
 
 @bot.command(name="give", brief="use `.give @<user> <amount>` to give someone else money")
-async def give(ctx, giveUser: discord.Member, usrIn):
+async def give(ctx, giveUser, usrIn):
+    try: giveUser = getUser(ctx, giveUser)
+    except ErrorToHandle as e: return await sendEmbed(ctx, f"{e}", -1)
     usr = ec.getUser(ctx.author)
     if usrIn == "all": amount = usr.cash
     else:
@@ -140,7 +159,9 @@ async def give(ctx, giveUser: discord.Member, usrIn):
     await sendEmbed(ctx, f"✅ You gave :coin: {"{:,}".format(amount)}. to {giveUser.display_name}", 1)
 
 @bot.command(name="rob", brief="use .rob <user> to steal money from them")
-async def rob(ctx, stealUser: discord.Member):
+async def rob(ctx, stealUser):
+    try: stealUser = getUser(ctx, stealUser)
+    except ErrorToHandle as e: return await sendEmbed(ctx, f"{e}", -1)
     target = ec.getUser(stealUser)
     usr = ec.getUser(ctx.author)
     if not usr.isCool('rob'): return await sendEmbed(ctx, f"❌ You can use this command again in <t:{usr.cooldowns["rob"]}:R>", -1)
