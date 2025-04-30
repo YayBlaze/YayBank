@@ -187,7 +187,7 @@ async def taxes(ctx):
 async def roulette(ctx, am, space):
     async def win():
         usr.cash += amount
-        if correct % 2 == 0: color = "red"
+        if correct % 2 != 0: color = "red"
         else: color = "black"
         return await sendEmbed(ctx, f"It rolled {color} {correct}\n{ctx.author.display_name} won :coin: {"{:,}".format(amount)} on roulette!", 1)
     usr = ec.getUser(ctx.author)
@@ -208,7 +208,7 @@ async def roulette(ctx, am, space):
     elif (space == "black" or space == "even") and correct % 2 == 0: await win()
     else:
         usr.cash -= amount
-        if correct % 2 == 0: color = "red"
+        if correct % 2 != 0: color = "red"
         else: color = "black"
         return await sendEmbed(ctx, f"It rolled {color} {correct}\n{ctx.author.display_name} lost :coin: {"{:,}".format(amount)} on roulette", -1)
     
