@@ -2,8 +2,10 @@ import random, json
 
 class ErrorToHandle(Exception):
     """Exception raised for custom error in the application."""
+    message = "generic error message"
 
     def __init__(self, message):
+        self.message = message
         super().__init__(message)
 
     def __str__(self):
