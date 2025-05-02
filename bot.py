@@ -56,12 +56,12 @@ async def editEmbed(ctx:discord.Message, message:str, type:int = 0, usr:discord.
     embed.description = message
     return await ctx.edit(embed=embed)
 
-def getUser(ctx, usrIn):
+async def getUser(ctx, usrIn):
     if type(usrIn) is discord.Member: return usrIn
     if type(usrIn) is not str: raise ErrorToHandle("❌ Please enter a user")
     match = []
     for i in ctx.guild.members:
-        if usrIn in i.name or usrIn in i.display_name: match.append(i)
+        if usrIn in i.name or usrIn in i.display_name or usrIn[2:-1] in str(i.id): match.append(i)
     if len(match) < 1: raise ErrorToHandle("❌ User Not Found")
     if len(match) == 1: return match[0]
     else: 
@@ -85,7 +85,7 @@ async def magic(ctx):
 async def balance(ctx, target = None):
     if target == None: target = ctx.author
     else: 
-        try: target = getUser(ctx, target)
+        try: target = await getUser(ctx, target)
         except ErrorToHandle as e:
             return await sendEmbed(ctx, f"{e}", -1)
     usr = ec.getUser(target)
@@ -146,7 +146,7 @@ async def withdraw(ctx, usrIn):
 
 @bot.command(name="give", brief="use `.give @<user> <amount>` to give someone else money")
 async def give(ctx, giveUser, usrIn):
-    try: giveUser = getUser(ctx, giveUser)
+    try: giveUser = await getUser(ctx, giveUser)
     except ErrorToHandle as e: return await sendEmbed(ctx, f"{e}", -1)
     usr = ec.getUser(ctx.author)
     if usrIn == "all": amount = usr.cash
@@ -160,7 +160,7 @@ async def give(ctx, giveUser, usrIn):
 
 @bot.command(name="rob", brief="use .rob <user> to steal money from them")
 async def rob(ctx, stealUser):
-    try: stealUser = getUser(ctx, stealUser)
+    try: stealUser = await getUser(ctx, stealUser)
     except ErrorToHandle as e: return await sendEmbed(ctx, f"{e}", -1)
     target = ec.getUser(stealUser)
     usr = ec.getUser(ctx.author)
@@ -216,7 +216,7 @@ async def roulette(ctx, am, space):
     else:
         try: amount = int(am)
         except ValueError: return await sendEmbed(ctx, "❌ Please enter a number or all", -1)
-    if amount < 200: return await sendEmbed(ctx, "❌ You must place at least :coin: 200 for your bet", -1)
+    if amount < 100: return await sendEmbed(ctx, "❌ You must place at least :coin: 100 for your bet", -1)
     if amount > usr.cash: return await sendEmbed(ctx, "❌ You cannot gamble more money than you have! Please withdraw more", -1)
     if space not in rouletteOptions: 
         msg = "❌ You must bet on one of the following spaces:\n"
@@ -236,7 +236,7 @@ async def roulette(ctx, am, space):
     
 @bot.command(name="blackjack", aliases=["bj"], brief="Allows you to play blackjack")
 async def blackjack(ctx, usrIn):
-    return await sendEmbed(ctx, "❌ I haven't coded this yet :(", -1)
+    # return await sendEmbed(ctx, "❌ I haven't coded this yet :(", -1)
     usr = ec.getUser(ctx.author)
     if not usr.isCool("bj"): #checks if the cooldown has worn off
         await sendEmbed(ctx, f"❌ You can play blackjack again in <t:{usr.cooldowns["bj"]}:R>", -1) #if it hasnt, deny the user to gamble
@@ -244,7 +244,7 @@ async def blackjack(ctx, usrIn):
     else:
         try: amount = int(usrIn) #otherwise try to make it a number
         except ValueError: return await sendEmbed(ctx, "❌ Please enter a number or all", -1)
-    if amount < 200: return await sendEmbed(ctx, "❌ You must place at least :coin: 200 for your bet", -1)
+    if amount < 100: return await sendEmbed(ctx, "❌ You must place at least :coin: 100 for your bet", -1)
     if amount > usr.cash: return await sendEmbed(ctx, "❌ You cannot gamble more money than you have! Please withdraw more", -1)
     availableCards = copy.deepcopy(cardList) #have a local copy of the card list
     aces = [] #list of ace emojis (not filled out)
@@ -285,9 +285,10 @@ async def blackjack(ctx, usrIn):
                     dealerTempValue += 1 #add 1, now you have the card's value
                     dealerValue += dealerTempValue #add the temp value to the final value, and repeat for the second card
             await Result.edit(ctx, f"Result: Dealer busts :coin: {Spoils} \n Dealer: Soft {dealerValue} \n {dealerCards[0]} {dealerCards[1]} \n Player: Blackjack \n {playerCards[0]} {playerCards[1]}", 1) #Player W, should edit the message
-    #else: #lmao you didn't immediately get a blackjack? (currently commented so it doesn't throw an error)
+    else: #lmao you didn't immediately get a blackjack? (currently commented so it doesn't throw an error)
         #player hit or stand, buttons and editing messages should be interesting :)
         await sendEmbed(ctx, "You didn't get a blackjack! You lose ig because i haven't coded this part yet", -1)
+        
         
 
 
