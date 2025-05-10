@@ -1,4 +1,4 @@
-import discord, os, dotenv, time, random, json, copy
+import discord, os, dotenv, time, random, json, copy, tba
 from discord.ext import commands
 from economy import *
 from functions import *
@@ -61,7 +61,9 @@ async def getUser(ctx, usrIn):
     if type(usrIn) is not str: raise ErrorToHandle("❌ Please enter a user")
     match = []
     for i in ctx.guild.members:
-        if usrIn in i.name or usrIn in i.display_name or usrIn[2:-1] in str(i.id): match.append(i)
+        if usrIn in i.name or usrIn in i.display_name: match.append(i)
+        elif "<@" in usrIn: 
+            if usrIn[2:-1] in str(i.id): match.append(i)
     if len(match) < 1: raise ErrorToHandle("❌ User Not Found")
     if len(match) == 1: return match[0]
     else: 
@@ -204,6 +206,23 @@ async def taxes(ctx):
             return await sendEmbed(ctx, f"You have paid :coin: {"{:,}".format(amount)} in taxes.", -1)
         place+=1
         
+@bot.command(name='frcmatch', aliases=['frc', 'match', 'frcbet', 'matchbet', 'frcmatchbet'], brief="Allows you to bet ont he outcome of a FRC match")
+async def frcmatch(ctx, am, match, team):
+    return await sendEmbed(ctx, "❌ I haven't finished coding this yet :(", -1)
+    usr = ec.getUser(ctx.author)
+    if am == "all": amount = usr.cash
+    else:
+        try: amount = int(am)
+        except ValueError: return await sendEmbed(ctx, "❌ Please enter a number or all", -1)
+    if amount < 100: return await sendEmbed(ctx, "❌ You must place at least :coin: 100 for your bet", -1)
+    if amount > usr.cash: return await sendEmbed(ctx, "❌ You cannot gamble more money than you have! Please withdraw more", -1)
+    try:
+        if tba.isPast(match): return await sendEmbed(ctx, "❌ You cannot bet on a match that already happened", -1)
+    except ErrorToHandle as e: return await sendEmbed(ctx, f"❌ {e}", -1)
+    if team != "red" and team != "blue": return await sendEmbed(ctx, "❌ Please enter either `red` or `blue`", -1)
+    await sendEmbed(ctx, f"✅ bet of :coin: {amount} has been placed on {team} playing in {match}", 1)
+    
+
 @bot.command(name='roulette', aliases=['roll', 'roul'], brief="Allows you to play roulette")
 async def roulette(ctx, am, space):
     async def win():
@@ -247,8 +266,8 @@ async def blackjack(ctx, usrIn):
     if amount < 100: return await sendEmbed(ctx, "❌ You must place at least :coin: 100 for your bet", -1)
     if amount > usr.cash: return await sendEmbed(ctx, "❌ You cannot gamble more money than you have! Please withdraw more", -1)
     availableCards = copy.deepcopy(cardList) #have a local copy of the card list
-    aces = [] #list of ace emojis (not filled out)
-    tensCards = [] #list of cards with a value over 9 (not filled out)
+    aces = ["<:as:1365940170066628649>", "<:ah:1365940142686077010>", "<:ad:1365940126399598652>", "<:ac:1365940107911368764>"] #list of ace emojis
+    tensCards = ["<:10s:1365940085102608384>", "<:10h:1365940055432233071>", "<:10d:1365940037727944767>", "<:10c:1365940020288032868>", "<:js:1365940382310993923>", "<:jh:1365940342284877834>", "<:jd:1365940315407650897>", "<:jc:1365940292091641887>", "<:qs:1365940560111603712>", "<:qh:1365940542671814746>", "<:qd:1365940522375450624>", "<:qc:1365940499235606599>", "<:ks:1365940474925285426>", "<:kh:1365940448279138344>", "<:kd:1365940428293148773>", "<:kc:1365940405832519761>"] #list of cards with a value over 9
     dealerCards = [] #new list for the dealer's cards
     playerCards = [] #new list for the player's cards
     dealerTempValue = 0 #temp 'working' value for dealer's cards
@@ -265,6 +284,7 @@ async def blackjack(ctx, usrIn):
         if set(dealerCards).intersection(aces) and set(dealerCards).intersection(tensCards): #if the dealer also has a blackjack
             await editEmbed(Result, f"Result: Push money back \n Dealer: Blackjack \n {dealerCards[0]} {dealerCards[1]} \n Player: Blackjack \n {playerCards[0]} {playerCards[1]}") #womp womp money back, should in theory edit the og message
         else: #otherwise only player has blackjack, and therefore wins
+            await ctx.send("player wins... editing message")
             Spoils = usrIn * 1.5 #calculate the spoils, multiplied by 1.5 because blackjack
             if set(dealerCards).intersection(aces): #determine dealer value (soft number, ie ace=11)
                 if dealerCards[0] in aces: #which one is which #1
@@ -284,10 +304,10 @@ async def blackjack(ctx, usrIn):
                         dealerTempValue -= 13
                     dealerTempValue += 1 #add 1, now you have the card's value
                     dealerValue += dealerTempValue #add the temp value to the final value, and repeat for the second card
-            await Result.edit(ctx, f"Result: Dealer busts :coin: {Spoils} \n Dealer: Soft {dealerValue} \n {dealerCards[0]} {dealerCards[1]} \n Player: Blackjack \n {playerCards[0]} {playerCards[1]}", 1) #Player W, should edit the message
+            await editEmbed(Result, f"Result: Dealer busts :coin: {Spoils} \n Dealer: Soft {dealerValue} \n {dealerCards[0]} {dealerCards[1]} \n Player: Blackjack \n {playerCards[0]} {playerCards[1]}", 1, ctx.author) #Player W, should edit the message
     else: #lmao you didn't immediately get a blackjack? (currently commented so it doesn't throw an error)
         #player hit or stand, buttons and editing messages should be interesting :)
-        await sendEmbed(ctx, "You didn't get a blackjack! You lose ig because i haven't coded this part yet", -1)
+        await sendEmbed(ctx, "You didn't get a blackjack smh... You lose ig because i haven't coded this part yet", -1)
         
         
 
@@ -311,6 +331,11 @@ async def blackjack_error(ctx, error):
 async def roulette_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument) or isinstance(error, commands.BadArgument):
         await sendEmbed(ctx, "❌ Too few arguments given.\n\nUsage:\n`roulette <bet> <space>`")   
+
+@frcmatch.error
+async def frcmatch_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument) or isinstance(error, commands.BadArgument):
+        await sendEmbed(ctx, "❌ Incorrect arguments given.\n\nUsage:\n`frcmatch <ammount> <match key> <red or blue>`", -1)
 
 @give.error
 async def give_error(ctx, error):
